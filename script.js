@@ -1,77 +1,86 @@
-const SHEET_ID = '1yokQIyX1faNBoFm9AeODvQ-p5X6aPpW6HLOUs9u8dXU';
+const SHEET_ID = '1kXbT9Ia6-rRGlDjGdwAtHShsw267eXxxLDk-wtn19f8';
 const SHEET_NAME = 'Employees';
+const API_KEY = 'AIzaSyAFnyXSAki4LiczKNhyEzbhHsvTC-abfAo';
 
 function initClient() {
     gapi.client.init({
-        apiKey: 'AIzaSyAFnyXSAki4LiczKNhyEzbhHsvTC-abfAo',
+        apiKey: API_KEY,
         discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"]
-    }).then(() => {
-        // Explicitly load the Sheets API
-        return gapi.client.load('sheets', 'v4');
-    }).then(() => {
-        console.log('API client initialized and Sheets API loaded.');
-    }).catch(error => {
-        console.error('Error during API initialization:', error);
-    });
+    })
+        .then(() => gapi.client.load('sheets', 'v4'))
+        .then(() => console.log('API client initialized and Sheets API loaded.'))
+        .catch(handleApiError);
 }
 
 function lookupEmail() {
     const employeeId = document.getElementById('employeeId').value.trim();
     const birthday = document.getElementById('birthday').value.trim();
-    
-    document.getElementById('result').innerText = '';
-    document.getElementById('errorEmployee').innerText = !employeeId ? 'กรุณาใส่รหัสพนักงานให้ถูกต้อง' : '';
-    document.getElementById('errorBirthday').innerText = !birthday ? 'กรุณาใส่วันเกิด' : '';
 
-    // Validate birthday format (DD/MM/YYYY)
-    const birthdayPattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    if (!birthdayPattern.test(birthday)) {
-        document.getElementById('errorBirthday').innerText = 'กรุณาใส่วันเกิดให้ถูกต้อง เช่น 1 มกราคม 2567 01/01/2567';
-        return;
+    resetErrorMessages();
+    validateInputs(employeeId, birthday);
+
+    if (!employeeId || !birthday) return;
+
+    const reformattedBirthday = formatBirthday(birthday);
+
+    fetchEmployeeData(employeeId, reformattedBirthday)
+        .then(email => displayResult(email))
+        .catch(error => handleError(error));
+}
+
+function resetErrorMessages() {
+    document.getElementById('result').innerText = '';
+    document.getElementById('errorEmployee').innerText = '';
+    document.getElementById('errorBirthday').innerText = '';
+}
+
+function validateInputs(employeeId, birthday) {
+    if (!employeeId) {
+        document.getElementById('errorEmployee').innerText = 'กรุณาใส่รหัสพนักงานให้ถูกต้อง';
     }
 
-     // Convert MM/DD/YYYY to DD/MM/YYYY
-    const parts = birthday.split('/');
-    const reformattedBirthday = `${parts[1]}/${parts[0]}/${parts[2]}`;
+    if (!birthday) {
+        document.getElementById('errorBirthday').innerText = 'กรุณาใส่วันเกิด';
+    }
+}
 
+function formatBirthday(birthday) {
+    const parts = birthday.split('-');
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
 
-    gapi.client.sheets.spreadsheets.values.get({
+function fetchEmployeeData(employeeId, birthday) {
+    return gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SHEET_ID,
         range: `${SHEET_NAME}!A:F`
-    }).then(response => {
-        const rows = response.result.values;
-        if (!rows || rows.length === 0) {
-            document.getElementById('result').innerText = 'ไม่พบข้อมูลในระบบ';
-            document.getElementById('result').style.color = 'red';
-            return;
-        }
-
-        let emailFound = false;
-        for (let i = 1; i < rows.length; i++) {
-
-            // Assuming the employeeId is in column 0 and the birthday is in column 1 (you can adjust if necessary)
-            if (rows[i][0] === employeeId && rows[i][4] === reformattedBirthday) {
-                console.log("rows[i][5] : ", rows[i][5])
-                if (rows[i][5] === undefined) {
-                    document.getElementById('result').innerText = 'ไม่พบข้อมูลในระบบ';
-                    document.getElementById('result').style.color = 'red';
-                    emailFound = true;
-                } else {
-                    document.getElementById('result').innerText = `อีเมลของคุณคือ : ${rows[i][5]}`;
-                    document.getElementById('result').style.color = '';
-                    emailFound = true;
-                    break;
-                }
+    })
+        .then(response => {
+            const rows = response.result.values;
+            if (!rows || rows.length === 0) {
+                throw new Error('No data found');
             }
-        }
-        if (!emailFound) {
-            document.getElementById('result').innerText = 'รหัสพนักงาน หรือ วันเกิดไม่ถูกต้อง';
-            document.getElementById('result').style.color = 'red';
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-        document.getElementById('result').innerText = 'Error fetching data.';
-    });
+
+            const row = rows.find(row => row[0] === employeeId && row[4] === birthday);
+            if (!row || !row[5]) {
+                throw new Error('No email found for the given employee ID and birthday');
+            }
+
+            return row[5];
+        });
+}
+
+function displayResult(email) {
+    document.getElementById('result').innerText = `อีเมลของคุณคือ : ${email}`;
+    document.getElementById('result').style.color = '';
+}
+
+function handleError(error) {
+    document.getElementById('result').innerText = error.message || 'Error fetching data.';
+    document.getElementById('result').style.color = 'red';
+}
+
+function handleApiError(error) {
+    console.error('Error during API initialization:', error);
 }
 
 gapi.load('client', initClient);
