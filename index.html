@@ -13,69 +13,96 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f4f4f4;
+            background-color: #e9ecef;
         }
 
         .container {
             max-width: 400px;
-            width: 100%;
+            width: 90%;
             padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .container h2 {
-            margin-bottom: 50px;
-            text-align: center
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 22px;
+            color: #333;
         }
-        
-        .container input[type="text"] {
+
+        .container input[type="text"],
+        .container input[type="date"] {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box; /* Ensure padding and border are included in width */
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        .container input[type="text"]:focus,
+        .container input[type="date"]:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
         }
 
         .container button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: none;
             background-color: #007bff;
             color: white;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1em;
         }
 
         .container button:hover {
             background-color: #0056b3;
         }
 
+        .container button:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
         .result {
             margin-top: 20px;
             font-size: 16px;
-            font-family: Arial, sans-serif;
+            color: #333;
             text-align: center;
         }
 
-        .descriptionEmp {
+        .descriptionEmp,
+        .descriptionBirthday {
             margin-bottom: 10px;
             margin-left: 5px;
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            color:red;
+            font-size: 16px;
+            color: #dc3545;
         }
 
-        .descriptionBirthday {
-            margin-bottom: 20px;
-            margin-left: 5px;
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            color:red;
+        /* Responsive styles for smaller screens */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+
+            .container h2 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+
+            .container button,
+            .container input[type="text"],
+            .container input[type="date"] {
+                padding: 10px;
+                font-size: 0.95em;
+            }
         }
-        
     </style>
 </head>
 
@@ -86,7 +113,7 @@
         </h2>
         <input type="text" id="employeeId" placeholder="โปรดใส่รหัสพนักงาน">
         <div id="errorEmployee" class="descriptionEmp"></div>
-        <input type="text" id="birthday" placeholder="โปรดใส่วันเกิด เช่น 1 มกราคม 2567 01/01/2567">
+        <input type="date" id="birthday" placeholder="โปรดใส่วันเกิด">
         <div id="errorBirthday" class="descriptionBirthday"></div>
         <button onclick="lookupEmail()">ค้นหา</button>
         <div id="result" class="result"></div>
